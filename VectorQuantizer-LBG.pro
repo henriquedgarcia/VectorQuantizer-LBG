@@ -4,13 +4,15 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cc \
-    vectorcoding.cc
+    vectorcoding.cc \
+    vectorquantizer.cc
 
 DISTFILES += \
     README.md
 
 HEADERS += \
-    vectorcoding.h
+    vectorcoding.h \
+    vectorquantizer.h
 
 INCLUDEPATH += \
     /usr/local/include/opencv
