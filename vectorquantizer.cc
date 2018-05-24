@@ -3,14 +3,14 @@
 using namespace std;
 
 VectorQuantizer::VectorQuantizer() :
-  m_tamanho ("1x2"),
+  m_vectorSize ("1x2"),
   m_codeBookSize (256),
-  codeBook (vector<vector*> (m_codeBookSize))
+  m_codeBook (vector<vector<uchar>> (m_codeBookSize))
 {}
 
 VectorQuantizer::VectorQuantizer(string tamanho, int codeBookSize)
 {
-  m_tamanho = "1x2";
+  m_vectorSize = "1x2";
   m_codeBookSize = codeBookSize;
   codeBook = vector<vector*> (m_codeBookSize);
 }

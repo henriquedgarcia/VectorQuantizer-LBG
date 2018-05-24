@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vectorcoding.h>
+#include "vectorquantizer.h"
 #include <string>
 
 using namespace std;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
       imagens.push_back ("imagem7.tiff");
       imagens.push_back ("imagem8.tiff");
       
-      vector<vector<uchar>> codebook = quantizador.train(imagens);
+      vector<vector<uchar>> codebook = quantizador.Train(imagens);
       
       // TODO: salvar codebook em arquivo aqui.
     }
