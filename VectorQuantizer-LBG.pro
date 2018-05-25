@@ -4,14 +4,12 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cc \
-    vectorcoding.cc \
     vectorquantizer.cc
 
 DISTFILES += \
     README.md
 
 HEADERS += \
-    vectorcoding.h \
     vectorquantizer.h
 
 INCLUDEPATH += \
@@ -23,7 +21,6 @@ LIBS += \
     -lopencv_imgcodecs \
     -lopencv_highgui \
     -lopencv_imgproc \
-    -lopencv_core \
     -lopencv_stitching \
     -lopencv_superres \
     -lopencv_videostab \

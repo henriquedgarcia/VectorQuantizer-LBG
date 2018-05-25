@@ -1,44 +1,114 @@
 #include "vectorquantizer.h"
+#include <cassert>
 
 using namespace std;
 
-VectorQuantizer::VectorQuantizer() :
-  m_vectorSize ("1x2"),
-  m_codeBookSize (256),
-  m_codeBook (vector<vector<uchar>> (m_codeBookSize))
+VectorQuantizer::VectorQuantizer()
 {}
 
 VectorQuantizer::VectorQuantizer(string tamanho, int codeBookSize)
 {
-  m_vectorSize = "1x2";
+  m_vectorSize = tamanho;
   m_codeBookSize = codeBookSize;
-  codeBook = vector<vector*> (m_codeBookSize);
+  m_codeBook = vector<vector*> (m_codeBookSize);
 }
 
-vector<vector<uchar> > VectorQuantizer::Train(vector<string> imagens)
+vector<vector<uchar> > VectorQuantizer::Train(vector<string> imagesList, string dim)
 {
   //  1 chutar vetor dos codebooks
+  
   //  2 Nquanto houver imagem
   //  3   Pegar uas imagens
   //  4   Segmentar essas imagens em vetores
+  
   //  5 Calcular a soma das diferenças absolutas (SDA) entre vetores das imagens (x) e o do codebook (y) Sum(|xn-yn|), n=1:vetor.size()
   //  6 indexar vetores da imagem ao vetor do codebook de menor SDA.
+  
   //  7 calcular vetor médio de todos os vetores da imagem indexados por cada elemento do codebook
+  
   //  8 se vetor medio daquele vetor do codebook for diferente do vetor do codebook
   //  9   subtitua o vetor do codebook
+  
   //  10 só parar quanto todos os vetores dos codebook não mudarem mais
   
   //  for (i = 0; i < imagens.size (); i++)
+  
+  vector<Mat> images = OpenImages (imagesList); 
+  vector<Mat> vectorBucket = Vectorize (images, dim);
+  vector<Mat> codebook = MakeCodebook(vectorBucket);
+  vector<vector<Mat>> indice(codebooksize); // aqui armazenamos os vetores de menor SDA. ex. indice(4) será um vetor<mat> com todos os vetores que possuem menor SDA com o codebook[4]
+  
+  FindSmallerSAD()
+//  while("centroids anterior != centroide atual");
+  {
+    for (auto vector : vectorBucket)
+      {
+        for (int i; i < codebook.size(); i++)
+          {
+            int erro = SDA (vector,codebook[i]);
+            if (erro < menorErro) 
+              {
+                smallerError = erro;
+                smallerCode = i;
+              }
+          }
+        
+        indice[smallerCode].pushback(vector);
+      }
+  }
+  
+  
+  
+  //  Sum of absolute differences (SAD)
+}
+
+vector<Mat> VectorQuantizer::OpenImages(vector<string> imagesList)
+{
+  vector<Mat> images;
   Mat img;
-  vector<Mat> vectorBucket;
-  auto it = vec.begin();
-  for (auto nameInput : imagens)
+  
+  for (auto filename : imagesList)
     {
-      Mat img = OpenImage (nameInput);      
-      vector<Mat> vetores = Vectorize (img);
-      vectorBucket.insert (vectorBucket.end(),vetores.begin(), vetores.end());
+      img = imread(filename, IMREAD_GRAYSCALE);
+      images.push_back (img);
+      assert (!(m_image.data == NULL));   
     }
-//  Sum of absolute differences (SAD)
+  
+  return images;
+}
+
+vector<Mat> VectorQuantizer::Vectorize(vector<Mat> images, string dim)
+{
+  vector<Mat> vectorsBucket;
+  
+  for (auto imagem : images)
+    {
+      vectorsBucket.push_back (Vectorize(imagem, dim));
+    }
+  
+  assert((vectorsBucket.size () != 0));
+  
+  return vectorsBucket;
+}
+
+vector<Mat> VectorQuantizer::Vectorize(Mat imagem, string dim)
+{
+  point vectorSizes = Str2Dim(dim);
+  Mat vetor;
+  vector<Mat> vectorsBucket;
+  for (int i = 0; i < imagem.rows; i += vectorSizes.y)
+    for (int j = 0; j < imagem.cols ; j += vectorSizes.x)
+      {
+        vetor = Mat(imagem, Rect(i, j, linha, coluna));        
+        vectorsBucket.push_back (vetor);
+        
+        //        namedWindow("Display Image", WINDOW_AUTOSIZE);
+        //        imshow("Display Image", vetor);
+        //        waitKey();
+      }
+  
+  assert((vectorsBucket.size () != 0));
+  return vectorsBucket;
 }
 
 void VectorQuantizer::Quantize(string nameInput)
@@ -46,56 +116,37 @@ void VectorQuantizer::Quantize(string nameInput)
   
 }
 
-Mat VectorQuantizer::OpenImage(string NameInput)
+Point VectorQuantizer::Str2Dim(string dim)
 {
+  string s_linha;
+  string s_coluna;
+  bool flag = false;
   
-  image = imread(NameInput, IMREAD_GRAYSCALE);
-  if ( !m_image.data )
+  for (char c : nome)
     {
-      cout << "No image data \n";
-      exit(-1);
+      if (c == 'x')
+        {
+          flag = true;
+          continue;
+        }
+      
+      if(flag == false)
+        s_linha.insert(s_linha.end(), c);
+      else
+        s_coluna.insert(s_coluna.end(), c);
     }
-  //  namedWindow("Display Image", WINDOW_AUTOSIZE );
-  //  imshow("Display Image", m_image);
-  //  waitKey();
-  return image;
+  
+  Point dim;
+  dim.y = stoi(s_linha);
+  dim.x = stoi(s_coluna);
+  
+  return dim;
 }
 
 //vector<Mat *> VectorQuantizer::Vectorize(Mat imgInput)
-vector<Mat> VectorQuantizer::Vectorize(Mat imagem)
+
+vector<Mat> VectorQuantizer::Vectorize(string)
 {
-  int linha = 100;
-  int coluna = 200;
-  Mat vetor;
-  
-  for (int i = 0; i < m_image.rows; i += linha)
-    for (int j = 0; j < m_image.cols ; j += coluna)
-      {
-        vetor = Mat(A, Rect(i, j, linha, coluna) );
-        
-        namedWindow("Display Image", WINDOW_AUTOSIZE);
-        imshow("Display Image", vetor);
-        waitKey();
-      }
-  
   
 }
 
-//void VectorCoding::Vectorize()
-//{
-//  linha=vt/384;
-//  coluna = vt % 384;
-
-//  for (px = 0; px < 15; px ++)
-//  {
-//  x = coluna *  4 + px / 4 ;
-//  y = l i n h a *
-//  4 + px%4;
-//  u n i d im e n s i o n a l = y*
-//  1536 + x ;
-//  i f ( s e nt i d o == IMAGEM_PARA_VETOR)
-//  v et o r . p i x e l [ px ] = img [ u n i d im e n s i o n a l ] ;
-//  else
-//  img [ u n i d im e n s i o n a l ] = v et o r . p i x e l [ px ] ;
-//  }
-//}

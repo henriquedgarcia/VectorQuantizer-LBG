@@ -3,12 +3,15 @@
 Quantizador vetorial com LBG para disciplina de Codificação Digital de Sinais, PGEA/UnB.
 
 Uso:
--Para treinar (colocar imagens
+-Para treinar (colocar imagens na pasta XXXXX)
 ./VectorQuantizer-LBG
 
 - Para quantizar
 ./VectorQuantizer-LBG inputFile
 
+
+TODO:
+    inicializar codebook
 
 ALGORITMO:
 treinamento:
@@ -24,14 +27,12 @@ treinamento:
 9   subtitua o vetor do codebook
 10 só parar quanto todos os vetores dos codebook não mudarem mais
 
-
 Uso:
-substituir o vetor de uma imagem pelo índice do vetor do codebook de menor SDA. codificar indices com huffman.
+1 substituir o vetor de uma imagem pelo índice do vetor do codebook de menor SDA. codificar indices com huffman.
 
 Extras:
-verifica compressão
-verifica distorção
-verifica MSE
+calcula compressão
+calcula distorção (MSE)
 
 saida também codifica o codebook
 tamanhoDoCodebookEmBytes = codebookSize * vectorSize * 1 (GRAY, se RGB = 3)
