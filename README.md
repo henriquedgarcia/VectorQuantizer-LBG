@@ -10,9 +10,6 @@ Uso:
 ./VectorQuantizer-LBG inputFile
 
 
-TODO:
-    inicializar codebook
-
 ALGORITMO:
 treinamento:
 

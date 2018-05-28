@@ -7,7 +7,11 @@ SOURCES += main.cc \
     vectorquantizer.cc
 
 DISTFILES += \
-    README.md
+    README.md \
+    treinamento1.tiff \
+    treinamento2.tiff \
+    treinamento3.tiff \
+    treinamento4.tiff
 
 HEADERS += \
     vectorquantizer.h
