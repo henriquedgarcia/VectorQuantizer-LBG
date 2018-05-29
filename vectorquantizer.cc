@@ -292,7 +292,7 @@ void VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string di
       // retorna codigo
       vectorBucket[j] = codebook[codeIndex];
       
-      imwrite ("saida.tiff", imgInput
+      imwrite ("saida.tiff", imgInput);
     }
 }
 
