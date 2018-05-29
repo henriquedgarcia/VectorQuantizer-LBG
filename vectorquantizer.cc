@@ -20,7 +20,7 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
   // retorna: um vetor de imagens
   vector<Mat> images = OpenImages (imagesList); 
   
-  cout << "Imagem de referencia:\n" << images[0] << endl;
+//  cout << "Imagem de referencia:\n" << images[0] << endl;
   if(false)
     { // testando imagens
       namedWindow("Display Image", WINDOW_AUTOSIZE);
@@ -54,15 +54,16 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
   vector<Mat> codebook = MakeCodebook(vectorBucket);
   if(true)
     {
+      cout << "codebook: \n";
       for(uint i = 0; i < codebook.size (); i++)
-        cout << "codebook " << i << " = " << codebook[i] << endl;
+        cout << "(" << i << ")" << codebook[i] << ", ";
       //      exit(0);
     }
   
   // Cria um balde para cada codigo do codebook
   vector<vector<Mat>> codebookBuckets(m_codeBookSize); 
   
-  cout << "Iniciando calculos: \n";
+  cout << "\n\nIniciando calculos: \n";
   vector<Mat> newCodebook;
   bool changes;
   do
@@ -79,7 +80,7 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
           exit(0);
         }
       
-      cout << "Calculando a média de cada balde \n";
+      cout << "\n\nCalculando a média de cada balde \n";
       // calcula o vetor médio de cada balde
       newCodebook = CalcAverageOfBucket (codebookBuckets);
       
@@ -88,22 +89,23 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
           cout << "Mostrando novo codebook" << endl;
           for (uint i = 0; i < newCodebook.size (); i++)
             cout << 
-                    "New Codebook = " << newCodebook[i] <<
-                    ", Codebook = " << codebook[i] <<
+                    "\nNew Codebook = " << newCodebook[i] <<
+                    "\n, Codebook = " << codebook[i] <<
                     endl;
           //          exit(0);
         }
       
-      cout << "Atualizando codebook" << endl;
+      cout << "\n\nAtualizando codebook" << endl;
       for (uint l = 0; l < codebook.size (); l++)
         {
           if (sum(codebook[l] != newCodebook[l]) != Scalar(0,0,0,0))
             {
+              if(true) cout << "New Codebook["<< l<<"] = " << newCodebook[l] << ", Codebook = " << codebook[l] << endl;
               codebook = newCodebook;
               changes = true;
             }
         }
-    }while (changes);
+    } while (changes);
   
   cout << "CABÔÔÔÔÔÔ \n";
   return codebook;
@@ -186,9 +188,13 @@ vector<vector<Mat>> VectorQuantizer::FillBuckets(vector<Mat> vectorBucket, vecto
   
   // PARA cada vetor do balde
   //  for (auto vect : vectorBucket)
+
+  cout << "Procurando balde para o vetor tamanho "<< vectorBucket.size () << "\n";
   for (uint j = 0; j < vectorBucket.size (); j++)
     {
-      cout << "Procurando balde para o vetor " << j << "/" << vectorBucket.size () << endl;
+      if(j%10 ==0)
+        cout << j << "/" << vectorBucket.size () << ", ";
+      
       menorDiff = Scalar(vectorBucket[0].total ()*255);
       // PARA cada codigo do codebook
       for (uint i = 0; i < codebook.size (); i++)
@@ -225,13 +231,15 @@ vector<Mat> VectorQuantizer::CalcAverageOfBucket(vector<vector<Mat> > codebookBu
   int i = 0;
   //  int j = 0;
   
+  cout << "Calculando balde ";
   // Para cada balde calcule o vetor médio
   for (auto bucket : codebookBuckets)//  for (uint i = 0; i < codebookBuckets.size (); i++)
     {
       // auto bucket = codebookBuckets[i];
       averageVector = Mat(m_vectorSizes.y, m_vectorSizes.x, CV_32S, Scalar(0));
       
-      cout << "pegou balde " << i++ << endl;
+      cout << i++ << ", ";
+  
       //      j = 0;
       // PARA cada vetor do balde
       for (auto vect : bucket)
@@ -279,9 +287,12 @@ void VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string di
               codeIndex = i;
             }
         }
+      // retorna indice
       output.write ((char *) &codeIndex, indexSize);
-      
+      // retorna codigo
       vectorBucket[j] = codebook[codeIndex];
+      
+      imwrite ("saida.tiff", imgInput
     }
 }
 
@@ -344,6 +355,7 @@ vector<Mat> VectorQuantizer::MakeCodebook(vector<Mat> vectorBucket)
   vector<Mat> codebook(m_codeBookSize);
   RNG RandonGenerator;
   int theChosenVector;
+  
   
   for(uint i = 0; i < codebook.size (); i++)
     {
