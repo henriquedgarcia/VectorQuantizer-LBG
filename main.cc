@@ -52,6 +52,7 @@ int main()
                 for(int j = 0; j < dimensao.x; j++)
                   saida.put (codebook[code].at<uchar>(i,j));
             saida.close ();
+            cout << "ok\n";
           }
     }
   
