@@ -13,7 +13,7 @@ int main()
   vector<int> codebookSize = {256,512,1024,2048};
   vector<Mat> codebook;
   
-  if(true)
+  if(false)
     {
       // treinamento
       cout << "Registrando imagens para treinamento \n";
@@ -55,7 +55,7 @@ int main()
           }
     }
   
-  if(false)
+  if(true)
     {
       //      abrindo codebook
       fstream input;
@@ -71,25 +71,42 @@ int main()
           Point dimensao = quantizador.Str2Dim (dim);
           
           // input.open (string("saida-codebook-") + string(dim) + string("-") + to_string(size) + string(".bin"), ios::out|ios::binary);
-          input.open ("codebook.bin", ios::out|ios::binary);
+          input.open ("codebook.bin", ios::in|ios::binary);
+          assert(input.is_open ());
           
           for(uint code = 0; code < codebook.size (); code++)
-            for(int i = 0; i < dimensao.y; i++)
-              for(int j = 0; j < dimensao.x; j++)
+            {
+              codebook[code] = Mat(dimensao.y,dimensao.x,CV_8UC1);
+              for(MatIterator_<uchar> it = codebook[code].begin<uchar>(); it != codebook[code].end<uchar>(); ++it)
                 {
-                  char caractere;
-                  input.get (caractere);
-                  codebook[code].at<uchar>(i,j) = caractere;
+                  uchar caractere = input.get ();
+                  *it = caractere;                  
+                  cout << "pegou caractere " << dec << (int) caractere << endl;
                 }
+              
+            }
+//            for(int i = 0; i < dimensao.y; i++)
+//              for(int j = 0; j < dimensao.x; j++)
+//                {
+//                  codebook[code] = Mat(dimensao.y,dimensao.x,CV_8UC1);
+//                  uchar caractere;
+//                  caractere = input.get ();
+//                  
+//                  codebook[code].at<uchar>(j,i) = caractere;
+//                  cout << "guardou caractere " << hex << codebook[code].at<uchar>(j,i) << endl;
+                  
+//                }
           input.close ();
           
-          if(true) // Mostra codebook
+//          if(false) // Mostra codebook
             {
               cout << "codebook" << endl;
               for(uint i = 0; i < codebook.size (); i++)
-                cout << "(" << i << ")" << codebook[i] << " = \n";
+                cout << "(" << i << ")\n" << codebook[i] << " = \n";
+              cout << "saindo";
+              exit(0);
             }
-          quantizador.Quantize (codebook,string("treinamento1.tiff"),dim,size);
+//          quantizador.Quantize (codebook,string("treinamento1.tiff"),dim,size);
           
           
           
