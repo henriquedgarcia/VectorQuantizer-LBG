@@ -8,7 +8,7 @@ VectorQuantizer::VectorQuantizer()
 
 vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int codeBookSize = 256)
 {
-  m_vectorSizes = Str2Dim(dim);
+  Point vectorSizes = Str2Dim(dim);
   
   cout << "vetorizando imagens para treinamento\n";    
   vector<Mat> imagesVector = OpenImages (imagesList);
@@ -24,7 +24,7 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
     }  
   
   // Vetorizando imagens
-  vector<Mat> vectorBucket = Vectorize (imagesVector, m_vectorSizes);
+  vector<Mat> vectorBucket = Vectorize (imagesVector, vectorSizes);
   
   // mostra vetores
   if(false) for (auto vec : vectorBucket) ShowVectorOfMat(vec);
@@ -40,7 +40,7 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
   vector<vector<Mat>> codebookBuckets(codebook.size ());
   
   // Loop de treinamento
-  cout << "\n\nIniciando treinamento\n";
+  cout << "\nIniciando treinamento\n";
   vector<Mat> newCodebook;
   bool changes;
   
@@ -61,7 +61,7 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
         }
       
       cout << "Calculando a média de cada balde \n";
-      newCodebook = CalcAverageOfBucket (codebookBuckets);
+      newCodebook = CalcAverageOfBucket (codebookBuckets, vectorSizes);
       
       // Comparando novo codebook
       if(false) 
@@ -70,22 +70,14 @@ vector<Mat> VectorQuantizer::Train(vector<string> imagesList, string dim, int co
           CompareVectorOfMat(newCodebook, codebook);
         }
       
-      cout << "\nAtualizando codebook" << endl;
-//      for (uint l = 0; l < codebook.size (); l++)
-//        {
-//          if (sum(codebook[l] != newCodebook[l]) != Scalar(0,0,0,0))
-//            {
-//              if(true) cout << "New Codebook["<< l<<"] = " << newCodebook[l] << ", Codebook = " << codebook[l] << endl;
-//              codebook = newCodebook;
-//              changes = true;
-//            }
-//        }
+      cout << "Atualizando codebook" << endl;
       
       changes = CheckCodebookChanges(codebook, newCodebook);
       if (changes) codebook = newCodebook;
+      
     } while (changes);
   
-  cout << "CABÔÔÔÔÔÔ \n";
+  cout << "Fim. \n";
   return codebook;
 }
 
@@ -167,7 +159,7 @@ vector<vector<Mat>> VectorQuantizer::FillBuckets(vector<Mat> vectorBucket, vecto
       // Mostre o progresso a cada 10 vetores
       // Reiniciando a menor diferença = maior diferença possível é matriz preta - matriz branca = |0-255|*totalPixel = vectorBucket[0].total ()*255
       
-//      if(j%1000 ==0) cout << j << "/" << vectorBucket.size () << ", ";
+      //      if(j%1000 ==0) cout << j << "/" << vectorBucket.size () << ", ";
       menorDiff = Scalar(vectorBucket[0].total ()*255);
       
       for (uint i = 0; i < codebook.size (); i++)
@@ -198,7 +190,7 @@ vector<vector<Mat>> VectorQuantizer::FillBuckets(vector<Mat> vectorBucket, vecto
   return codebookBuckets;
 }
 
-vector<Mat> VectorQuantizer::CalcAverageOfBucket(vector<vector<Mat> > codebookBuckets)
+vector<Mat> VectorQuantizer::CalcAverageOfBucket(vector<vector<Mat> > codebookBuckets, Point vectorSizes)
 {
   Mat uintVector;
   Mat averageVector;
@@ -211,7 +203,7 @@ vector<Mat> VectorQuantizer::CalcAverageOfBucket(vector<vector<Mat> > codebookBu
   for (auto bucket : codebookBuckets)//  for (uint i = 0; i < codebookBuckets.size (); i++)
     {
       // auto bucket = codebookBuckets[i];
-      averageVector = Mat(m_vectorSizes.y, m_vectorSizes.x, CV_32S, Scalar(0));
+      averageVector = Mat(vectorSizes.y, vectorSizes.x, CV_32S, Scalar(0));
       
       cout << i++ << ", ";
       
@@ -258,11 +250,11 @@ bool VectorQuantizer::CheckCodebookChanges(vector<Mat> codebook, vector<Mat> new
 
 void VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string dim, int codeBookSize)
 {
-  m_vectorSizes = Point(Str2Dim (dim));
+  Point vectorSizes = Point(Str2Dim (dim));
   
   Mat imgInput = imread (imageFile,IMREAD_GRAYSCALE);
   assert(imgInput.data != 0);
-  vector<Mat> vectorBucket = Vectorize (imgInput, m_vectorSizes);
+  vector<Mat> vectorBucket = Vectorize (imgInput, vectorSizes);
   Scalar minSad;
   int codeIndex;
   fstream output;
@@ -399,6 +391,34 @@ void VectorQuantizer::SaveCodebook(vector<Mat> codebook, string dimensoes, int c
   
   codebookFstream.close ();
   cout << "Gravando codebook - OK!" << endl;
+}
+
+vector<Mat> VectorQuantizer::loadCodebook(string codebookfile, string dimensoes, int codebookSize)
+{
+  vector<Mat> codebook = vector<Mat>(codebookSize); // cria matriz em branco
+  Point dimensao = VectorQuantizer::Str2Dim (dimensoes); // extrai as dimensões
+  fstream input;
+  input.open (codebookfile, ios::in|ios::binary);
+  assert(input.is_open ());
+  
+  for(uint code = 0; code < codebook.size (); code++)
+    {
+      // Para cada código do codebook
+      // crie um vetor
+      // preencha o vetor com os dados do arquivo
+      codebook[code] = Mat(dimensao.y,dimensao.x,CV_8UC1);
+      
+      for(MatIterator_<uchar> it = codebook[code].begin<uchar>(); it != codebook[code].end<uchar>(); ++it)
+        {
+          int caractere = input.get ();
+          assert(caractere != EOF); // verifica se o arquivo tem os tamanho corretos          
+          *it = (uchar) caractere;
+          // cout << "pegou caractere " << dec << (int) caractere << endl;
+        }
+    }
+  
+  input.close ();
+  return codebook;  
 }
 
 void VectorQuantizer::CompareVectorOfMat(vector<Mat> codebook1, vector<Mat> codebook2)
