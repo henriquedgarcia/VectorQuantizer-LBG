@@ -6,7 +6,6 @@
 using namespace std;
 
 // help funcions
-vector<Mat> loadCodebook(string codebookfile, string dimensoes, int codebookSize);
 
 int main()
 {  
@@ -21,8 +20,8 @@ int main()
       vector<string> treinamento = {"imagens/teatro.tiff"};
       
       cout << "Inicialando treinamento \n";
-      for (int size : codebookSize)
-        for (string dim : dimensoes)
+      for (string dim : dimensoes)
+        for (int size : codebookSize)
           {
             cout << "treinamento para codebook = " << size << ", dimensões = " << dim << endl;
             codebook = quantizador.Train(treinamento, dim, size);
@@ -39,19 +38,20 @@ int main()
     {
       // Quantização
       dimensoes = {"1x2"};
-      codebookSize = {16};      
+      codebookSize = {176};      
       
       // abrindo codebook
-      for (int size : codebookSize)
-        for (string dim : dimensoes)
+      for (string dim : dimensoes)
+        for (int size : codebookSize)
           {
             string codebookfile = "codebooks/codebook-" + dim + "-" + to_string(size) + ".cdbk";
             codebook = VectorQuantizer::loadCodebook(codebookfile, dim, size);   
             
             // mostra codebook
-            if(true) VectorQuantizer::ShowVectorOfMat(codebook);
+            if(false) VectorQuantizer::ShowVectorOfMat(codebook);
             // Aplica codebook
-//            quantizador.Quantize (codebook,string("treinamento1.tiff"),dim,size);
+            string saida = quantizador.Quantize (codebook,string("imagens/lena.tiff"),dim,size);
+            cout << saida << endl;
           }      
     }
   

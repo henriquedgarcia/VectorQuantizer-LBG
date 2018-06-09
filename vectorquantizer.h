@@ -26,13 +26,14 @@ public:
   void CompareVectorOfMat(vector<Mat> codebook1, vector<Mat> codebook2);
   
   // Quantização
-  void Quantize(vector<Mat> codebook, string imageFile, string dim, int codeBookSize);
+  string Quantize(vector<Mat> codebook, string imageFile, string dim, int codeBookSize);
   
   // tools
   static Point Str2Dim(string dim);
   static void ShowVectorOfMat(vector<Mat> codebook);
   static void SaveCodebook(vector<Mat> codebook, string dimensoes, int codebookSize);
   static vector<Mat> loadCodebook(string codebookfile, string dimensoes, int codebookSize);
+  static double Mse(Mat image1, Mat image2);
   vector<Mat> OpenImages(vector<string> imagesList);  
 };
 

@@ -248,31 +248,48 @@ bool VectorQuantizer::CheckCodebookChanges(vector<Mat> codebook, vector<Mat> new
   return false;
 }
 
-void VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string dim, int codeBookSize)
+string VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string dim, int codeBookSize)
 {
-  Point vectorSizes = Point(Str2Dim (dim));
   
-  Mat imgInput = imread (imageFile,IMREAD_GRAYSCALE);
-  assert(imgInput.data != 0);
-  vector<Mat> vectorBucket = Vectorize (imgInput, vectorSizes);
-  Scalar minSad;
   int codeIndex;
   fstream output;
-  uint indexSize;
-  if (codeBookSize <= 256) indexSize = 1;
-  else indexSize = 2;
-  output.open (string("0-Saida-")+dim+string("-")+to_string(codeBookSize)+string("-")+imageFile+string(".LBG"), ios::out| ios::binary);
   
+  // uma pequena otimização do tamanho do arquivo.
+  uint indexSize;  
+  if (codeBookSize <= 256) indexSize = 1; 
+  else indexSize = 2;
+  
+  // Converte dimensões
+  Point vectorSizes;
+  vectorSizes = Point(Str2Dim (dim));
+  
+  // Abre imagem de entrada
+  Mat imgInput;
+  imgInput = imread (imageFile,IMREAD_GRAYSCALE);
+  assert(imgInput.data != 0);
+  
+  // abre saída. Imagem quantizada
+  string nome;
+  nome = "quantizado/imagem-" + dim + "-" + to_string(codeBookSize) + ".vci";  // vector coded image
+  output.open (nome, ios::out| ios::binary); 
+  
+  // Vetoriza imagem
+  vector<Mat> vectorBucket;
+  vectorBucket = Vectorize (imgInput, vectorSizes);
+  
+  // Loop de quantização
   cout << "Quantizando " << imageFile << ", dim = " << dim << ", codeBookSize = " << codeBookSize << endl;
   for (uint j = 0; j < vectorBucket.size (); j++)
     {
-      //      if(j%10 ==0)
-      //        cout << dec << j << "/" << vectorBucket.size () << ", ";
+      // Para cada vetor no balde
+      // Procure no codebook a menor distância
       
+      Mat matDiff;
+      Scalar minSad;
       minSad = Scalar(vectorBucket[0].total ()*255);
+      
       for(uint i = 0; i < codebook.size (); i++)
         {
-          Mat matDiff;
           absdiff (vectorBucket[j],codebook[i], matDiff);
           Scalar sumAbsDiff = sum (matDiff);
           
@@ -282,63 +299,36 @@ void VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string di
               codeIndex = i;
             }
         }
-      if(false) {cout << "Encontrado! Trocando vectorBucket["<< j<<"] = \n" 
-                      << vectorBucket[j] << 
-                         "\nPor codebook["<< codeIndex<<"] = \n" << 
-                         codebook[codeIndex] << 
+      
+      if(true) {cout << "pronto! Trocando vectorBucket["<< dec << j<<"] = \n"
+                      << vectorBucket[j] <<
+                         "\nPor codebook["<< codeIndex<<"] = \n" <<
+                         codebook[codeIndex] <<
                          endl;
-          cout << "escreveu o caractere = " << hex << codeIndex << endl << endl;}      
+          cout << "escreveu o caractere = " << hex << codeIndex << endl << endl;}
+      
+      // duas etapas
       // retorna indice
       output.write ((char *) &codeIndex, indexSize);
       
-      // Atualiza imagem com o novo codigo      
-      for(MatIterator_<uchar> it1 = vectorBucket[j].begin<uchar>(), it2 = codebook[codeIndex].begin<uchar>(); 
-          it1 != vectorBucket[j].end<uchar>(); 
+      // Atualiza imagem com o novo codigo
+      for(MatIterator_<uchar> it1 = vectorBucket[j].begin<uchar>(), it2 = codebook[codeIndex].begin<uchar>();
+          it1 != vectorBucket[j].end<uchar>();
           ++it1, ++it2)
-        {          
-          //          cout << dec << (int) *it1 << " e " << (int) *it2 << endl;     
-          *it1 = *it2;    
-          //          cin.get ();
-          
+        {
+          *it1 = *it2;
         }
-      //      vectorBucket[j] = codebook[codeIndex];      
     }
   
-  imwrite (string("0-Saida-")+string(dim)+string("-")+to_string(codeBookSize)+string("-")+imageFile, imgInput);
-  cout << "PSNR = " << PSNR (imgInput, imread (imageFile,IMREAD_GRAYSCALE)) << endl;  
-  cout << "PSNR (ref.)= " << PSNR (imread (imageFile,IMREAD_GRAYSCALE),imread (imageFile,IMREAD_GRAYSCALE)) << endl;  
+  nome = "quantizado/imagem-" + dim + "-" + to_string(codeBookSize) + ".tiff";  // vector coded image
+  imwrite (nome, imgInput);
   
+  double mse = Mse (imread (imageFile,IMREAD_GRAYSCALE),
+                    imread (nome,IMREAD_GRAYSCALE));
+  string statisticas = dim + "," + to_string(codeBookSize) + "," + to_string(mse);
   
-  ///////////////////////////////////////////////////////////
-  //  Calculando métricas
+  return statisticas;
 }
-
-//imwrite ("saida.tiff", imgInput, const std::vector<int> &params);
-//vector<Mat> VectorQuantizer::UpdateCodebook(vector<Mat> codebook, vector<Mat> newCodebook)
-//{
-//  // se atualizar retorna true
-//  bool saida = false;
-//  Mat matDiff;
-
-//  for(uint i = 0; i < codebook.size (); i++)
-//    {
-//      absdiff (codebook[i], newCodebook[i], matDiff);
-//      cout << "\nCodebook["<< i << "] = " << codebook[i] << 
-//              "newCodebook["<< i << "] = " << newCodebook[i] << 
-//              "matDiff = " << matDiff << 
-//              endl;
-
-//      if (sum(matDiff) != Scalar(0,0,0,0))
-//        {
-//          cout << "MUDANÇA DETECTADA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-//          codebook[i] = newCodebook[i];
-//          if (saida == false)
-//            saida = true;
-//        }
-//    }
-//  cin.get();
-//  return codebook;
-//}
 
 Point VectorQuantizer::Str2Dim(string dim)
 {
@@ -411,20 +401,40 @@ vector<Mat> VectorQuantizer::loadCodebook(string codebookfile, string dimensoes,
       for(MatIterator_<uchar> it = codebook[code].begin<uchar>(); it != codebook[code].end<uchar>(); ++it)
         {
           int caractere = input.get ();
-          assert(caractere != EOF); // verifica se o arquivo tem os tamanho corretos          
+          assert(caractere != EOF); // verifica se o arquivo tem os tamanho corretos
           *it = (uchar) caractere;
           // cout << "pegou caractere " << dec << (int) caractere << endl;
         }
     }
   
   input.close ();
-  return codebook;  
+  return codebook;
+}
+
+double VectorQuantizer::Mse(Mat image1, Mat image2)
+{
+  int sum = 0;
+  int difference = 0;
+  double mse;
+  
+  assert((image1.size() == image2.size()));
+  
+  for(MatIterator_<uchar> it1 = image1.begin<uchar>(), it2 = image2.begin<uchar>();
+      it1 != image1.end<uchar>();
+      ++it1, ++it2)
+    {      
+      difference = *it1 - *it2;
+      sum = sum + difference*difference;         
+    }
+  
+      mse = ((double) sum) /(image1.cols * image1.rows);
+      return mse;
 }
 
 void VectorQuantizer::CompareVectorOfMat(vector<Mat> codebook1, vector<Mat> codebook2)
 {
   for (uint i = 0; i < codebook1.size (); i++)
-    cout << 
+    cout <<
             "\n New Codebook[" << i << "] = " << codebook1[i] <<
             "\n, Codebook[" << i << "] = " << codebook2[i] <<
             endl;
@@ -449,10 +459,10 @@ vector<Mat> VectorQuantizer::MakeCodebook(vector<Mat> vectorBucket, int codeBook
       do
         {
           flag = false;
-          theChosenVector = RandonGenerator.uniform(0, vectorBucket.size ()); 
+          theChosenVector = RandonGenerator.uniform(0, vectorBucket.size ());
           for (auto k : codebook)
             if (sum (vectorBucket[theChosenVector] != k ) == Scalar(0,0,0,0)) flag = true;
-        } while (flag);      
+        } while (flag);
       
       codebook[i] = vectorBucket[theChosenVector];
     }
