@@ -10,7 +10,7 @@ using namespace std;
 int main()
 {  
   vector<string> dimensoes = {"1x2","2x2","2x4","4x2","4x4"};
-  vector<int> codebookSize; for (auto i = 16; i <= 2048; i+=16) codebookSize.push_back (i);
+  vector<int> codebookSize; for (auto i = 16; i <= 336; i+=16) codebookSize.push_back (i);
   VectorQuantizer quantizador;
   vector<Mat> codebook;    
   
@@ -37,8 +37,8 @@ int main()
   if(true)
     {
       // Quantização
-      dimensoes = {"1x2"};
-      codebookSize = {176};      
+//      dimensoes = {"1x2"};
+//      codebookSize = {176};      
       
       // abrindo codebook
       for (string dim : dimensoes)

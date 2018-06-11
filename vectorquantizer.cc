@@ -256,8 +256,8 @@ string VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string 
   
   // uma pequena otimização do tamanho do arquivo.
   uint indexSize;  
-  if (codeBookSize <= 256) indexSize = 1; 
-  else indexSize = 2;
+  if (codeBookSize > 256) indexSize = 2; 
+  else indexSize = 1;
   
   // Converte dimensões
   Point vectorSizes;
@@ -300,7 +300,7 @@ string VectorQuantizer::Quantize(vector<Mat> codebook, string imageFile, string 
             }
         }
       
-      if(true) {cout << "pronto! Trocando vectorBucket["<< dec << j<<"] = \n"
+      if(false) {cout << "pronto! Trocando vectorBucket["<< dec << j<<"] = \n"
                       << vectorBucket[j] <<
                          "\nPor codebook["<< codeIndex<<"] = \n" <<
                          codebook[codeIndex] <<
