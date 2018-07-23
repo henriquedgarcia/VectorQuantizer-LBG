@@ -71,3 +71,10 @@ Thumbs.db
 *.dll
 *.exe
 *.cdbk
+*.huff
+*.vci
+/quantizado/*
+/grafico.jpg
+/grafico.pdf
+/saida.cvs
+/saida.txt
